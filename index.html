@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trinethra — Supervisor Feedback Analyzer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 24px; }
+    header p { font-size: 13px; color: #aaa; margin-top: 4px; }
+    .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #1a1a2e; }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    textarea:focus { outline: none; border-color: #4361ee; }
+    button {
+      margin-top: 16px;
+      padding: 12px 32px;
+      background: #4361ee;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { background: #3451d1; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #4361ee;
+      font-size: 16px;
+    }
+    .result-section { display: none; }
+    .section-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border-left: 4px solid #4361ee;
+    }
+    .section-card h3 {
+      font-size: 16px;
+      color: #4361ee;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .score-box {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+    .score-number {
+      font-size: 56px;
+      font-weight: bold;
+      color: #4361ee;
+      line-height: 1;
+    }
+    .score-label { font-size: 20px; font-weight: 600; }
+    .score-band { font-size: 13px; color: #888; margin-top: 4px; }
+    .score-justification {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #444;
+      background: #f8f9ff;
+      padding: 14px;
+      border-radius: 8px;
+    }
+    .evidence-item {
+      background: #f8f9ff;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .evidence-quote {
+      font-style: italic;
+      color: #333;
+      font-size: 14px;
+      margin-bottom: 8px;
+      border-left: 3px solid #4361ee;
+      padding-left: 10px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    .positive { background: #d4edda; color: #155724; }
+    .negative { background: #f8d7da; color: #721c24; }
+    .neutral { background: #fff3cd; color: #856404; }
+    .interpretation { font-size: 13px; color: #555; margin-top: 8px; }
+    .kpi-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: #f8f9ff;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .kpi-name {
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 130px;
+      color: #4361ee;
+    }
+    .kpi-evidence { font-size: 13px; color: #555; }
+    .gap-item {
+      padding: 12px;
+      background: #fff8f0;
+      border-left: 3px solid #ff9800;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #444;
+    }
+    .gap-dimension {
+      font-weight: 600;
+      color: #e65100;
+      margin-bottom: 4px;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .question-item {
+      padding: 14px;
+      background: #f0f4ff;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .question-gap { font-size: 12px; color: #888; }
+    .error-box {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 16px;
+      border-radius: 8px;
+      display: none;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>👁️ Trinethra — Supervisor Feedback Analyzer</h1>
+    <p>DeepThought · Fellow Performance Assessment Tool</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Input Section -->
+  <div class="card">
+    <h2>📋 Paste Supervisor Transcript</h2>
+    <textarea id="transcript" placeholder="Paste the supervisor's transcript here..."></textarea>
+    <div class="error-box" id="errorBox">⚠️ Error connecting to Ollama. Make sure Ollama is running on your laptop.</div>
+    <button id="analyzeBtn" onclick="analyzeTranscript()">🔍 Run Analysis</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    ⏳ Analyzing transcript with AI... This may take 30-60 seconds...
+  </div>
+
+  <!-- Results -->
+  <div class="result-section" id="results">
+
+    <!-- Score -->
+    <div class="section-card">
+      <h3>⭐ Rubric Score</h3>
+      <div class="score-box">
+        <div class="score-number" id="scoreValue">-</div>
+        <div>
+          <div class="score-label" id="scoreLabel">-</div>
+          <div class="score-band" id="scoreBand">-</div>
+        </div>
+      </div>
+      <div class="score-justification" id="scoreJustification">-</div>
+    </div>
+
+    <!-- Evidence -->
+    <div class="section-card">
+      <h3>📌 Extracted Evidence</h3>
+      <div id="evidenceList"></div>
+    </div>
+
+    <!-- KPI Mapping -->
+    <div class="section-card">
+      <h3>📊 KPI Mapping</h3>
+      <div id="kpiList"></div>
+    </div>
+
+    <!-- Gaps -->
+    <div class="section-card">
+      <h3>⚠️ Gap Analysis</h3>
+      <div id="gapList"></div>
+    </div>
+
+    <!-- Follow-up Questions -->
+    <div class="section-card">
+      <h3>💬 Suggested Follow-up Questions</h3>
+      <div id="questionList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+async function analyzeTranscript() {
+  const transcript = document.getElementById('transcript').value.trim();
+  if (!transcript) { alert('Please paste a transcript first!'); return; }
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('analyzeBtn').textContent = '⏳ Analyzing...';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('errorBox').style.display = 'none';
+
+  const prompt = `You are an expert performance analyst for DeepThought, a B2B company that places Fellows inside Indian manufacturing companies.
+
+Analyze this supervisor transcript and return ONLY a valid JSON object (no extra text, no markdown, no backticks).
+
+RUBRIC (1-10):
+1=Not Interested, 2=Lacks Discipline, 3=Motivated but Directionless
+4=Careless and Inconsistent, 5=Consistent Performer, 6=Reliable and Productive
+7=Problem Identifier, 8=Problem Solver, 9=Innovative and Experimental, 10=Exceptional Performer
+
+KEY DISTINCTION:
+- Score 6: Does tasks assigned by others reliably
+- Score 7: Identifies problems the supervisor never asked about
+
+ASSESSMENT DIMENSIONS (check all 4):
+1. execution - Gets things done on time without reminders
+2. systems_building - Creates tools/processes that work after Fellow leaves
+3. kpi_impact - Connects work to measurable business outcomes
+4. change_management - Gets floor team to adopt new processes
+
+KPIs to map: lead_generation, lead_conversion, upselling, cross_selling, nps, pat, tat, quality
+
+SUPERVISOR BIASES to watch for:
+- Helpfulness bias: task absorption sounds like high performance
+- Presence bias: being on floor rated higher than building systems
+- Halo effect: one good story colors entire assessment
+- Recency bias: remembers last 2 weeks only
+
+TRANSCRIPT:
+${transcript}
+
+Return ONLY this JSON structure:
+{
+  "score": {
+    "value": 6,
+    "label": "Reliable and Productive",
+    "band": "Productivity",
+    "justification": "One paragraph explanation citing specific evidence"
+  },
+  "evidence": [
+    {
+      "quote": "exact quote from transcript",
+      "signal": "positive",
+      "dimension": "execution",
+      "interpretation": "what this quote reveals"
+    }
+  ],
+  "kpiMapping": [
+    {
+      "kpi": "quality",
+      "evidence": "what the supervisor said"
+    }
+  ],
+  "gaps": [
+    {
+      "dimension": "systems_building",
+      "detail": "what information is missing"
+    }
+  ],
+  "followUpQuestions": [
+    {
+      "question": "the question to ask",
+      "targetGap": "which gap this addresses"
+    }
+  ]
+}`;
+
+  try {
+    const response = await fetch('http://127.0.0.1:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama3.2',
+        prompt: prompt,
+        stream: false
+      })
+    });
+
+    const data = await response.json();
+    let text = data.response.trim();
+
+    // Clean response
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    // Find JSON
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('No JSON found');
+    text = text.substring(start, end + 1);
+
+    const result = JSON.parse(text);
+    displayResults(result);
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('errorBox').style.display = 'block';
+  } finally {
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('analyzeBtn').textContent = '🔍 Run Analysis';
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+function displayResults(result) {
+  // Score
+  document.getElementById('scoreValue').textContent = result.score.value;
+  document.getElementById('scoreLabel').textContent = result.score.label;
+  document.getElementById('scoreBand').textContent = 'Band: ' + result.score.band;
+  document.getElementById('scoreJustification').textContent = result.score.justification;
+
+  // Evidence
+  const evidenceList = document.getElementById('evidenceList');
+  evidenceList.innerHTML = '';
+  result.evidence.forEach(e => {
+    evidenceList.innerHTML += `
+      <div class="evidence-item">
+        <div class="evidence-quote">"${e.quote}"</div>
+        <span class="badge ${e.signal}">${e.signal.toUpperCase()}</span>
+        <span class="badge neutral">${e.dimension}</span>
+        <div class="interpretation">${e.interpretation}</div>
+      </div>`;
+  });
+
+  // KPI
+  const kpiList = document.getElementById('kpiList');
+  kpiList.innerHTML = '';
+  if (result.kpiMapping.length === 0) {
+    kpiList.innerHTML = '<p style="color:#888">No KPIs identified from this transcript.</p>';
+  } else {
+    result.kpiMapping.forEach(k => {
+      kpiList.innerHTML += `
+        <div class="kpi-item">
+          <div class="kpi-name">${k.kpi.toUpperCase()}</div>
+          <div class="kpi-evidence">${k.evidence}</div>
+        </div>`;
+    });
+  }
+
+  // Gaps
+  const gapList = document.getElementById('gapList');
+  gapList.innerHTML = '';
+  result.gaps.forEach(g => {
+    gapList.innerHTML += `
+      <div class="gap-item">
+        <div class="gap-dimension">${g.dimension.replace(/_/g, ' ')}</div>
+        ${g.detail}
+      </div>`;
+  });
+
+  // Questions
+  const questionList = document.getElementById('questionList');
+  questionList.innerHTML = '';
+  result.followUpQuestions.forEach((q, i) => {
+    questionList.innerHTML += `
+      <div class="question-item">
+        <div class="question-text">Q${i+1}. ${q.question}</div>
+        <div class="question-gap">🎯 Targets: ${q.targetGap.replace(/_/g, ' ')}</div>
+      </div>`;
+  });
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
